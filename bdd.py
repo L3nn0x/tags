@@ -12,7 +12,7 @@ class   Bdd:
         c.execute("CREATE TABLE IF NOT EXISTS links(id INTEGER PRIMARY KEY AUTOINCREMENT, dataID INTEGER NOT NULL, tagID INTEGER NOT NULL, FOREIGN KEY(dataID) REFERENCES data(id), FOREIGN KEY(tagID) REFERENCES tags(id));")
 
     def __del__(self):
-        self.conn.commit()
+        self.save()
 
     def addEntry(self, data, tags):
         if type(tags) != list and type(tags) != tuple:
@@ -62,7 +62,7 @@ class   Bdd:
 
     def deleteData(self, data):
         c = self.conn.cursor()
-        c.execute("SELECT links.tagID FROM data INNER JOIN links ON data.id == links.dataID WHERE data.data like ?;", (data,))
+        c.execute("SELECT links.tagID FROM data INNER JOIN links ON data.id=links.dataID WHERE data.data like ?;", (data,))
         tagsToCheck = [i[0] for i in c.fetchall()]
         c.execute("SELECT id FROM data WHERE data like ?;", (data,))
         idData = c.fetchone()
@@ -74,6 +74,13 @@ class   Bdd:
             c.execute("SELECT COUNT(*) FROM links WHERE tagID=?;", (i,))
             if c.fetchone()[0] <= 1:
                 c.execute("DELETE FROM tags WHERE id=?;", (i,))
+
+    def deleteTagFromData(self, data, tag):
+        c = self.conn.cursor()
+        c.execute("DELETE links FROM links INNER JOIN data ON links.dataID=data.id INNER JOIN tags ON links.tagID=tags.id WHERE data.data like ? && tags.tag like ?;", (data, tag))
+
+    def save(self):
+        self.conn.commit()
 
 def test(a):
     a.addEntry("test", ("fun", "cool"))
