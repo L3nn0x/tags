@@ -55,7 +55,25 @@ class   Bdd:
     def findTags(self, partial):
         c = self.conn.cursor()
         c.execute("SELECT tag FROM tags WHERE tag like '%{}%';".format(partial))
-        return [i[0] for i in c.fetchall()]
+        data = c.fetchall()
+        if data == None:
+            return []
+        return [i[0] for i in data]
+
+    def deleteData(self, data):
+        c = self.conn.cursor()
+        c.execute("SELECT links.tagID FROM data INNER JOIN links ON data.id == links.dataID WHERE data.data like ?;", (data,))
+        tagsToCheck = [i[0] for i in c.fetchall()]
+        c.execute("SELECT id FROM data WHERE data like ?;", (data,))
+        idData = c.fetchone()
+        if idData != None:
+            idData = idData[0]
+            c.execute("DELETE FROM data WHERE id=?;", (idData,))
+            c.execute("DELETE FROM links WHERE dataID=?;", (idData,))
+        for i in tagsToCheck:
+            c.execute("SELECT COUNT(*) FROM links WHERE tagID=?;", (i,))
+            if c.fetchone()[0] <= 1:
+                c.execute("DELETE FROM tags WHERE id=?;", (i,))
 
 def test(a):
     a.addEntry("test", ("fun", "cool"))
