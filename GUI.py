@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import bdd as BDD
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QSystemTrayIcon, QMenu, QAction, QLineEdit, QLabel, QTableWidget, QGridLayout, QTableWidgetItem
 from PyQt5.QtGui import QIcon
@@ -26,8 +27,11 @@ class WinNewEntry(QWidget):
         lblTags.setToolTip('À séparer par des virgules')
 
         self.champURL = QLineEdit(self)
+        self.champURL.returnPressed.connect(self.enregistrer)
 
-        self.champTags = QLineEdit(self) 
+
+        self.champTags = QLineEdit(self)
+        self.champTags.returnPressed.connect(self.enregistrer)
 
         btnEnr = QPushButton('Enregistrer',self)
         btnEnr.clicked.connect(self.save)
@@ -55,9 +59,11 @@ class WinNewEntry(QWidget):
         e.ignore()
 
     def save(self):
-        print("URL: "+self.champURL.text())
-        print("Tags: "+self.champTags.text())
-        e = NewDataEvent(self.champURL.text(), self.champTags.text())
+        tags = self.champTags.text().split(",")
+        for i in range(len(tags)):
+            if tags[i][0] == ' ':
+                tags[i] = tags[i][1:]
+        e = NewDataEvent(self.champURL.text(), tags)
         self.champURL.setText('')
         self.champTags.setText('')
         self.hide()
@@ -85,13 +91,15 @@ class WinList(QWidget):
         
         self.tab.horizontalHeader().setSectionResizeMode(1)
         self.tab.setColumnCount(3)
+        self.tab.cellChanged.connect(self.test)
     
         lblRecherche = QLabel('Recherche: ', self)
 
         btnRecherche = QPushButton('Rechercher', self)
+        btnRecherche.clicked.connect(self.rechercher)
         
         self.recherche = QLineEdit()
-        
+        self.recherche.returnPressed.connect(self.rechercher)
 
         grid = QGridLayout()
         grid.setSpacing(10)
@@ -109,6 +117,21 @@ class WinList(QWidget):
         self.tab.setItem(l, 0, QTableWidgetItem(url))
         self.tab.setItem(l, 1, QTableWidgetItem(tags))
         self.tab.setItem(l, 2, QTableWidgetItem(date))
+        
+    def vider(self):
+        self.tab.setRowCount(0)
+        
+    def rechercher(self):
+        self.vider()
+        liste = bdd.getTagFilter(self.recherche.text())
+        suggestion = bdd.findTags(self.recherche.text())
+        if liste == []:
+            for i in suggestion:
+                for j in bdd.getTagFilter(i):
+                    liste.append(j)
+        #print(liste)
+        for i in liste:
+            self.ajouteLigne(i.data,", ".join(i.tags), i.date)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -122,6 +145,10 @@ class WinList(QWidget):
         if type(e) is UpdateListEvent:
             if e.add:
                 self.addLine(e.data, ', '.join(e.tags), e.date)
+
+    def test(self):
+        if(self.tab.currentRow(), self.tab.currentColumn()) != (-1, -1):
+            print(self.tab.currentRow(),self.tab.currentColumn(),self.tab.currentItem().text())
 
 class Icon(QWidget):
     def __init__(self, app, newEntry, listWin):
@@ -159,4 +186,3 @@ if __name__ == '__main__':
     #ListWindow.show()    
     icon = Icon()
     sys.exit(app.exec_())
-
