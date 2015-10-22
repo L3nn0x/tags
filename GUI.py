@@ -118,8 +118,11 @@ class FenetreListe(QWidget):
     def rechercher(self):
         self.vider()
         liste = bdd.getTagFilter(self.recherche.text())
+        suggestion = bdd.findTags(self.recherche.text())
         if liste == []:
-            liste = bdd.findTags(self.recherche.text())
+            for i in suggestion:
+                for j in bdd.getTagFilter(i):
+                    liste.append(j)
         #print(liste)
         for i in liste:
             self.ajouteLigne(i.data,", ".join(i.tags), i.date)
