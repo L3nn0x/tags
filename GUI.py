@@ -6,13 +6,15 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QSystemTrayIcon, QMenu, QAction, QLineEdit, QLabel, QTableWidget, QGridLayout, QTableWidgetItem
 from PyQt5.QtGui import QIcon
 import signal
+from controller import *
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-class FenetreNewEntry(QWidget):
-    def __init__(self):
+class WinNewEntry(QWidget):
+    def __init__(self, controller):
         super().__init__()
         self.initUI()
+        self.controller = controller
 
     def initUI(self):
         self.setGeometry(200,200,500,200)
@@ -28,7 +30,7 @@ class FenetreNewEntry(QWidget):
         self.champTags = QLineEdit(self) 
 
         btnEnr = QPushButton('Enregistrer',self)
-        btnEnr.clicked.connect(self.enregistrer)
+        btnEnr.clicked.connect(self.save)
 
         btnAnnul = QPushButton('Annuler',self)
         btnAnnul.clicked.connect(self.hide)
@@ -52,22 +54,27 @@ class FenetreNewEntry(QWidget):
         self.hide()
         e.ignore()
 
-    def enregistrer(self):
+    def save(self):
         print("URL: "+self.champURL.text())
         print("Tags: "+self.champTags.text())
+        e = NewDataEvent(self.champURL.text(), self.champTags.text())
+        self.champURL.setText('')
+        self.champTags.setText('')
+        self.hide()
+        self.controller.notify(e)
+
+    def cancel(self):
         self.champURL.setText('')
         self.champTags.setText('')
         self.hide()
 
-    def annuler(self):
-        self.champURL.setText('')
-        self.champTags.setText('')
-        self.hide()
-
-class FenetreListe(QWidget):
-    def __init__(self):
+class WinList(QWidget):
+    def __init__(self, controller):
         super().__init__()
         self.initUI()
+        self.controller = controller
+        self.controller.addObserver(self)
+        self.controller.notify(GetAllEvent())
 
     def initUI(self):
         self.setGeometry(200,200,600,280)
@@ -94,11 +101,9 @@ class FenetreListe(QWidget):
         grid.addWidget(self.tab,4,0, 6,9)
 
         self.tab.setHorizontalHeaderLabels(('URL','Tags','Date d\'ajout'))
-        self.ajouteLigne("http://pouet.pouet", "tag1, tag2", "10/10/2015")
-        
         self.setLayout(grid)
 
-    def ajouteLigne(self, url, tags, date):
+    def addLine(self, url, tags, date):
         l = self.tab.rowCount()
         self.tab.setRowCount(l+1)
         self.tab.setItem(l, 0, QTableWidgetItem(url))
@@ -113,24 +118,32 @@ class FenetreListe(QWidget):
         self.hide()
         e.ignore()
 
-class Icone(QWidget):
-    def __init__(self):
+    def notify(self, e):
+        if type(e) is UpdateListEvent:
+            if e.add:
+                self.addLine(e.data, ', '.join(e.tags), e.date)
+
+class Icon(QWidget):
+    def __init__(self, app, newEntry, listWin):
         super().__init__()
+        self.newEntry = newEntry
+        self.listWin = listWin
+        self.app = app
         self.initUI()
 
     def initUI(self):
         
         menu = QMenu()
         Ajouter = QAction(QIcon(''), '&Ajouter un tag', menu)
-        Ajouter.triggered.connect(NewEntryWindow.show)
+        Ajouter.triggered.connect(self.newEntry.show)
         menu.addAction(Ajouter)
 
         ouvrir = QAction(QIcon(''), '&Ouvrir', menu)
-        ouvrir.triggered.connect(ListWindow.show)
+        ouvrir.triggered.connect(self.listWin.show)
         menu.addAction(ouvrir)
 
         Quitter = QAction(QIcon(''), '&Quitter', menu)
-        Quitter.triggered.connect(app.exit)
+        Quitter.triggered.connect(self.app.exit)
         menu.addAction(Quitter)
 
         self.icon = QSystemTrayIcon()
@@ -140,10 +153,10 @@ class Icone(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ListWindow = FenetreListe()
-    NewEntryWindow = FenetreNewEntry()
+    ListWindow = WinList()
+    NewEntryWindow = WinNewEntry()
     #NewEntryWindow.show()
     #ListWindow.show()    
-    icon = Icone()
+    icon = Icon()
     sys.exit(app.exec_())
 

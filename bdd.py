@@ -3,10 +3,13 @@
 import sqlite3
 
 class   Entry:
-    def __init__(self, (data, date, tags)):
-        self.data = data
-        self.date = date
-        self.tags = tags
+    def __init__(self, t):
+        self.data = t[0]
+        self.date = t[1]
+        self.tags = t[2]
+
+    def __str__(self):
+        return "{} on {} with tags : {}".format(self.data, self.date, self.tags)
 
 class   Bdd:
     def __init__(self, filename):
@@ -40,6 +43,7 @@ class   Bdd:
             idTags.append(c.fetchone()[0])
         for i in idTags:
             c.execute("INSERT INTO links(dataID, tagID) VALUES(?, ?);", (idData, i))
+        self.save()
 
     def getTagFilter(self, tags):
         if type(tags) != list and type(tags) != tuple:
@@ -55,7 +59,9 @@ class   Bdd:
         tags = set(tags)
         for i in table.items():
             if i[1] == tags:
-                result.append(Entry((i[0][0], i[0][1], i[1])))
+                c.execute("SELECT tags.tag FROM tags INNER JOIN links ON tags.id == links.tagID INNER JOIN data ON links.dataID == data.id WHERE data.data like ?;", (i[0][0],))
+                allTags = [i[0] for i in c.fetchall()]
+                result.append(Entry((i[0][0], i[0][1], allTags)))
         return result
 
     def findTags(self, partial):
@@ -69,10 +75,15 @@ class   Bdd:
     def findData(self, data = None):
         c = self.conn.cursor()
         if data != None:
-            c.execute("SELECT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id WHERE data.data like ?;", (data,))
+            c.execute("SELECT DISTINCT data.data, data.date FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id WHERE data.data like ?;", (data,))
         else:
-            c.execute("SELECT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id;")
-        return [Entry(i) for i in c.fetchall()]
+            c.execute("SELECT DISTINCT data.data, data.date FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id;")
+        data = c.fetchall()
+        result = []
+        for i in data:
+            c.execute("SELECT tags.tag FROM tags INNER JOIN links ON tags.id == links.tagID INNER JOIN data ON links.dataID == data.id WHERE data.data like ?;", (i[0],))
+            result.append(Entry((i[0], i[1], [i[0] for i in c.fetchall()])))
+        return result
 
     def deleteData(self, data):
         c = self.conn.cursor()
