@@ -2,6 +2,12 @@
 
 import sqlite3
 
+class   Entry:
+    def __init__(self, (data, date, tags)):
+        self.data = data
+        self.date = date
+        self.tags = tags
+
 class   Bdd:
     def __init__(self, filename):
         self.filename = filename
@@ -49,7 +55,7 @@ class   Bdd:
         tags = set(tags)
         for i in table.items():
             if i[1] == tags:
-                result.append(i[0])
+                result.append(Entry((i[0][0], i[0][1], i[1])))
         return result
 
     def findTags(self, partial):
@@ -59,6 +65,14 @@ class   Bdd:
         if data == None:
             return []
         return [i[0] for i in data]
+
+    def findData(self, data = None):
+        c = self.conn.cursor()
+        if data != None:
+            c.execute("SELECT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id WHERE data.data like ?;", (data,))
+        else:
+            c.execute("SELECT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id;")
+        return [Entry(i) for i in c.fetchall()]
 
     def deleteData(self, data):
         c = self.conn.cursor()
