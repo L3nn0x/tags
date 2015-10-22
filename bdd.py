@@ -3,10 +3,10 @@
 import sqlite3
 
 class   Entry:
-    def __init__(self, (data, date, tags)):
-        self.data = data
-        self.date = date
-        self.tags = tags
+    def __init__(self, t):
+        self.data = t[0]
+        self.date = t[1]
+        self.tags = list(t[2])
 
 class   Bdd:
     def __init__(self, filename):
