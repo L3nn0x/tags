@@ -27,11 +27,11 @@ class WinNewEntry(QWidget):
         lblTags.setToolTip('À séparer par des virgules')
 
         self.champURL = QLineEdit(self)
-        self.champURL.returnPressed.connect(self.enregistrer)
+        self.champURL.returnPressed.connect(self.save)
 
 
         self.champTags = QLineEdit(self)
-        self.champTags.returnPressed.connect(self.enregistrer)
+        self.champTags.returnPressed.connect(self.save)
 
         btnEnr = QPushButton('Enregistrer',self)
         btnEnr.clicked.connect(self.save)
