@@ -27,6 +27,7 @@ class FenetreNewEntry(QWidget):
         self.champURL = QLineEdit(self)
         self.champURL.returnPressed.connect(self.enregistrer)
 
+
         self.champTags = QLineEdit(self)
         self.champTags.returnPressed.connect(self.enregistrer)
 
@@ -84,6 +85,7 @@ class FenetreListe(QWidget):
         
         self.tab.horizontalHeader().setSectionResizeMode(1)
         self.tab.setColumnCount(3)
+        self.tab.cellChanged.connect(self.test)
     
         lblRecherche = QLabel('Recherche: ', self)
 
@@ -134,6 +136,11 @@ class FenetreListe(QWidget):
     def closeEvent(self, e):
         self.hide()
         e.ignore()
+
+    def test(self):
+        if(self.tab.currentRow(), self.tab.currentColumn()) != (-1, -1):
+            print(self.tab.currentRow(),self.tab.currentColumn(),self.tab.currentItem().text())
+        
 
 class Icone(QWidget):
     def __init__(self):
