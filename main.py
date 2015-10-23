@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication
 import sys
 
 controller = Controller()
-model = Model("db", controller)
+model = Model("bdd.db", controller)
 app = QApplication(sys.argv)
 ListWindow = WinList(controller)
 NewEntryWindow = WinNewEntry(controller)

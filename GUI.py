@@ -123,15 +123,18 @@ class WinList(QWidget):
         
     def rechercher(self):
         self.vider()
-        liste = bdd.getTagFilter(self.recherche.text())
-        suggestion = bdd.findTags(self.recherche.text())
-        if liste == []:
-            for i in suggestion:
-                for j in bdd.getTagFilter(i):
-                    liste.append(j)
+        e = SearchEvent(self.recherche.text())
+        self.controller.notify(e)
+        #liste = bdd.getTagFilter(self.recherche.text())
+        #suggestion = bdd.findTags(self.recherche.text())
+        #if liste == []:
+        #    for i in suggestion:
+        #        for j in bdd.getTagFilter(i):
+        #            liste.append(j)
+        
         #print(liste)
-        for i in liste:
-            self.ajouteLigne(i.data,", ".join(i.tags), i.date)
+        #for i in liste:
+        #    self.addLine(i.data,", ".join(i.tags), i.date)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -145,6 +148,8 @@ class WinList(QWidget):
         if type(e) is UpdateListEvent:
             if e.add:
                 self.addLine(e.data, ', '.join(e.tags), e.date)
+        #if type(e) is SearchEvent:
+            
 
     def test(self):
         if(self.tab.currentRow(), self.tab.currentColumn()) != (-1, -1):

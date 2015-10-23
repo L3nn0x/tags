@@ -17,3 +17,6 @@ class   Model:
         elif type(e) is GetAllEvent:
             for i in self.bdd.findData():
                 self.manager.notify(UpdateListEvent(i, True))
+        elif type(e) is SearchEvent:
+            for i in self.bdd.getTagFilter(e.s):
+                self.manager.notify(UpdateListEvent(i, True))

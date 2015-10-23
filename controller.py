@@ -22,6 +22,11 @@ class   UpdateListEvent(Event):
         self.data = entry.data
         self.tags = entry.tags
         self.date = entry.date
+        
+class SearchEvent(Event):
+    def __init__(self, s):
+        self.name = "search event"
+        self.s = s
 
 class   GetAllEvent(Event):
     def __init__(self):
