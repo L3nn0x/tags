@@ -10,6 +10,9 @@ class   Entry:
 
     def __str__(self):
         return "{} on {} with tags : {}".format(self.data, self.date, self.tags)
+        
+    def __eq__(self, a):
+        return a.data == self.data
 
 class   Bdd:
     def __init__(self, filename):

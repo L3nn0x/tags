@@ -19,11 +19,10 @@ class   Model:
                 self.manager.notify(UpdateListEvent(i, True))
         elif type(e) is SearchEvent:
             r = self.bdd.getTagFilter(e.s)
-            if len(r) == 0:
-                tags = self.bdd.findTags(e.s)
-                r = []
-                for i in tags:
-                    for j in self.bdd.getTagFilter(i):
+            tags = self.bdd.findTags(e.s)   # Recherche les tags suggérés et les ajoute aux tags exacts trouvés
+            for i in tags:
+                for j in self.bdd.getTagFilter(i):
+                    if not j in r:
                         r.append(j)
             for i in r:
                 self.manager.notify(UpdateListEvent(i, True))
