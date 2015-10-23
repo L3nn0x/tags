@@ -18,5 +18,12 @@ class   Model:
             for i in self.bdd.findData():
                 self.manager.notify(UpdateListEvent(i, True))
         elif type(e) is SearchEvent:
-            for i in self.bdd.getTagFilter(e.s):
+            r = self.bdd.getTagFilter(e.s)
+            if len(r) == 0:
+                tags = self.bdd.findTags(e.s)
+                r = []
+                for i in tags:
+                    for j in self.bdd.getTagFilter(i):
+                        r.append(j)
+            for i in r:
                 self.manager.notify(UpdateListEvent(i, True))
