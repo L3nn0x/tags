@@ -77,10 +77,10 @@ class WinNewEntry(QWidget):
 class WinList(QWidget):
     def __init__(self, controller):
         super().__init__()
-        self.initUI()
         self.controller = controller
         self.controller.addObserver(self)
-        self.controller.notify(GetAllEvent())
+        self.initUI()
+        
 
     def initUI(self):
         self.setGeometry(200,200,600,280)
@@ -91,7 +91,7 @@ class WinList(QWidget):
         
         self.tab.horizontalHeader().setSectionResizeMode(1)
         self.tab.setColumnCount(3)
-        self.tab.cellChanged.connect(self.test)
+        self.tab.cellChanged.connect(self.getMod)
     
         lblRecherche = QLabel('Recherche: ', self)
 
@@ -107,9 +107,12 @@ class WinList(QWidget):
         grid.addWidget(btnRecherche, 0, 8)
         grid.addWidget(self.recherche, 0, 1, 1, 7)
         grid.addWidget(self.tab,4,0, 6,9)
+        
 
         self.tab.setHorizontalHeaderLabels(('URL','Tags','Date d\'ajout'))
         self.setLayout(grid)
+        
+        self.controller.notify(GetAllEvent())
 
     def addLine(self, url, tags, date):
         l = self.tab.rowCount()
@@ -123,7 +126,11 @@ class WinList(QWidget):
         
     def rechercher(self):
         self.vider()
-        e = SearchEvent(self.recherche.text())
+        s = self.recherche.text()
+        if s == "":
+            e = GetAllEvent()
+        else:
+            e = SearchEvent(s)
         self.controller.notify(e)
         #liste = bdd.getTagFilter(self.recherche.text())
         #suggestion = bdd.findTags(self.recherche.text())
@@ -148,10 +155,9 @@ class WinList(QWidget):
         if type(e) is UpdateListEvent:
             if e.add:
                 self.addLine(e.data, ', '.join(e.tags), e.date)
-        #if type(e) is SearchEvent:
             
 
-    def test(self):
+    def getMod(self):
         if(self.tab.currentRow(), self.tab.currentColumn()) != (-1, -1):
             print(self.tab.currentRow(),self.tab.currentColumn(),self.tab.currentItem().text())
 
