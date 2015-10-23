@@ -52,7 +52,7 @@ class   Bdd:
         if type(tags) != list and type(tags) != tuple:
             tags = [tags]
         c = self.conn.cursor()
-        c.execute("SELECT DISTINCT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id WHERE tags.tag IN ({});".format("'" + "','".join(tags) + "'"))
+        c.execute("SELECT DISTINCT data.data, data.date, tags.tag FROM data INNER JOIN links ON data.id == links.dataID INNER JOIN tags ON links.tagID == tags.id WHERE tags.tag IN ({}) ORDER BY data.date;".format("'" + "','".join(tags) + "'"))
         data = c.fetchall()
         from collections import defaultdict
         table = defaultdict(set)
@@ -62,7 +62,7 @@ class   Bdd:
         tags = set(tags)
         for i in table.items():
             if i[1] == tags:
-                c.execute("SELECT tags.tag FROM tags INNER JOIN links ON tags.id == links.tagID INNER JOIN data ON links.dataID == data.id WHERE data.data like ?;", (i[0][0],))
+                c.execute("SELECT tags.tag FROM tags INNER JOIN links ON tags.id == links.tagID INNER JOIN data ON links.dataID == data.id WHERE data.data LIKE ? ORDER BY data.date;", (i[0][0],))
                 allTags = [i[0] for i in c.fetchall()]
                 result.append(Entry((i[0][0], i[0][1], allTags)))
         return result

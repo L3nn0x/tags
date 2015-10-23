@@ -1,8 +1,12 @@
 #!/usr/bin/python3
 
 from bdd import Bdd
-
 from controller import *
+
+def sortByDate(l):
+    import operator
+    return sorted(l, key=operator.attrgetter('date'), reverse=True)
+    
 
 class   Model:
     def __init__(self, dbname, eventManager):
@@ -15,7 +19,8 @@ class   Model:
             self.bdd.addEntry(e.data, e.tags)
             self.manager.notify(UpdateListEvent(self.bdd.findData(e.data)[0], True))
         elif type(e) is GetAllEvent:
-            for i in self.bdd.findData():
+            r = sortByDate(self.bdd.findData())
+            for i in r:
                 self.manager.notify(UpdateListEvent(i, True))
         elif type(e) is SearchEvent:
             r = self.bdd.getTagFilter(e.s)
@@ -24,5 +29,6 @@ class   Model:
                 for j in self.bdd.getTagFilter(i):
                     if not j in r:
                         r.append(j)
+            r = sortByDate(r)
             for i in r:
                 self.manager.notify(UpdateListEvent(i, True))
