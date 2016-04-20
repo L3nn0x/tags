@@ -60,9 +60,7 @@ class WinNewEntry(QWidget):
 
     def save(self):
         tags = self.champTags.text().split(",")
-        for i in range(len(tags)):
-            if tags[i][0] == ' ':
-                tags[i] = tags[i][1:]
+        tags = [i for i in map(lambda s: s.rstrip(" \t").lstrip(" \t"), tags)]
         e = NewDataEvent(self.champURL.text(), tags)
         self.champURL.setText('')
         self.champTags.setText('')
@@ -132,16 +130,6 @@ class WinList(QWidget):
         else:
             e = SearchEvent(s)
         self.controller.notify(e)
-        #liste = bdd.getTagFilter(self.recherche.text())
-        #suggestion = bdd.findTags(self.recherche.text())
-        #if liste == []:
-        #    for i in suggestion:
-        #        for j in bdd.getTagFilter(i):
-        #            liste.append(j)
-        
-        #print(liste)
-        #for i in liste:
-        #    self.addLine(i.data,", ".join(i.tags), i.date)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
